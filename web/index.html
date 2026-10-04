@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Colour Diam · Conversion Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/studio.css">
+</head>
+<body>
+  <div class="grain"></div>
+  <header>
+    <img class="mark" src="/static/logo.png" alt="Colour Diam">
+    <nav>
+      <a href="https://www.colourdiam.com/register" target="_blank" rel="noopener">Register</a>
+      <a href="https://www.colourdiam.com/product" target="_blank" rel="noopener">Shop</a>
+      <a href="https://www.colourdiam.com/contactus" target="_blank" rel="noopener">Enquire</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">Professional ads that sell colour diamonds</p>
+      <h1>Get customers. Get purchases. Get leads.</h1>
+      <p class="lede">Beat-synced Colour Diam films built to convert. Every cut ends on a clear action: register, shop, or enquire at www.colourdiam.com.</p>
+      <div class="kpis">
+        <article><strong>1</strong><span>Register at colourdiam.com/register</span></article>
+        <article><strong>2</strong><span>Buy jewelry at colourdiam.com/product</span></article>
+        <article><strong>3</strong><span>Enquire at colourdiam.com/contactus</span></article>
+      </div>
+      <div class="actions">
+        <button data-campaign="register" data-fmt="vertical">Register ad 9:16</button>
+        <button class="ghost" data-campaign="shop" data-fmt="vertical">Shop ad 9:16</button>
+        <button class="ghost" data-campaign="enquire" data-fmt="vertical">Enquire ad 9:16</button>
+        <button class="ghost" data-campaign="register" data-fmt="horizontal">YouTube 16:9</button>
+      </div>
+      <p id="status" class="status">Ready to render a conversion film for Colour Diam.</p>
+    </section>
+
+    <section class="gallery">
+      {% if videos %}
+        {% for item in videos %}
+        <article class="card">
+          <video controls playsinline poster="{{ item.poster }}" src="{{ item.file }}"></video>
+          <div class="meta">
+            <h2>{{ item.label }}</h2>
+            <p>{{ item.cta }} · {{ item.size }}</p>
+            <a class="download" href="{{ item.url }}" target="_blank" rel="noopener">Open landing page</a>
+            <a class="download" href="{{ item.file }}" download>Download MP4</a>
+          </div>
+        </article>
+        {% endfor %}
+      {% else %}
+        <article class="card empty">
+          <p>No ads yet. Generate the Register 9:16 film first — that is the priority campaign.</p>
+        </article>
+      {% endif %}
+    </section>
+  </main>
+
+  <footer>
+    <p>Colour Diam · www.colourdiam.com · +852 96440155 · GIA · Family since 1984</p>
+  </footer>
+  <script src="/static/studio.js"></script>
+</body>
+</html>

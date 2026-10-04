@@ -1,0 +1,18 @@
+{
+  "video": "/workspace/output/colourdiam_register_vertical.mp4",
+  "poster": "/workspace/output/colourdiam_register_vertical_poster.jpg",
+  "caption": "/workspace/output/colourdiam_register_vertical.txt",
+  "beats_csv": "/workspace/output/beats.csv",
+  "audio": "/workspace/assets/music/colourdiam_score.wav",
+  "tempo": 80.74951171875,
+  "beat_count": 30,
+  "duration": 24.0,
+  "format": "vertical",
+  "campaign": "register",
+  "cta": "REGISTER NOW",
+  "url": "https://www.colourdiam.com/register",
+  "size": [
+    720,
+    1280
+  ]
+}

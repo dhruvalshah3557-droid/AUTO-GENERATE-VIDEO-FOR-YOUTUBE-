@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+.env
+*.log
+.DS_Store
+output/work_*/
+output/**/frames/
+*.tmp
+.idea/
+.vscode/
+vendor/**/.git
+vendor/**/node_modules/
