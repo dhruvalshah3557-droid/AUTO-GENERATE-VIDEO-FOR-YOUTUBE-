@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MoneyPrinterTurbo</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <h1 class="brand-name">MoneyPrinterTurbo</h1>
+          <a
+            class="brand-version"
+            href="https://github.com/harry0703/MoneyPrinterTurbo"
+            target="_blank"
+            rel="noreferrer"
+            >v1.3.7</a
+          >
+        </div>
+        <div class="top-actions">
+          <div class="popover-wrap">
+            <button type="button" class="ghost-btn" id="task-manager-btn">
+              <span data-i18n="taskManager">Task Manager</span>
+              <span class="caret">▾</span>
+            </button>
+            <div class="popover" id="task-popover" hidden>
+              <div class="popover-head">
+                <strong data-i18n="taskManager">Task Manager</strong>
+                <button type="button" class="text-btn" id="refresh-tasks" data-i18n="refresh">
+                  Refresh
+                </button>
+              </div>
+              <div id="task-list" class="task-list">
+                <p class="muted" data-i18n="noTasks">No tasks yet.</p>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="ghost-btn" id="settings-btn">
+            <span class="gear">⚙</span>
+            <span data-i18n="settings">Settings</span>
+          </button>
+          <select id="lang-select" class="lang-select" aria-label="Language">
+            <option value="en">English</option>
+            <option value="zh">简体中文</option>
+          </select>
+        </div>
+      </header>
+
+      <main class="grid" id="main-grid">
+        <section class="panel">
+          <h2 data-i18n="scriptSettings">Video Script Settings</h2>
+          <label>
+            <span data-i18n="videoStyle">Script Style</span>
+            <select id="video-style">
+              <option value="narration" data-i18n="styleNarration">Narration</option>
+              <option value="podcast" data-i18n="stylePodcast">Podcast</option>
+              <option value="crosstalk" data-i18n="styleCrosstalk">Crosstalk</option>
+              <option value="talkshow" data-i18n="styleTalkshow">Talkshow</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="sourceUrl">Article URL (Optional)</span>
+            <input
+              id="source-url"
+              type="url"
+              placeholder="https://example.com/article"
+              data-i18n-placeholder="urlPlaceholder"
+            />
+          </label>
+          <div class="split">
+            <button type="button" class="outline-btn compact-btn" id="fetch-url-btn">
+              <span data-i18n="fetchArticle">Fetch Article</span>
+            </button>
+            <button type="button" class="outline-btn compact-btn" id="hotlist-btn">
+              <span data-i18n="hotList">Hot List</span>
+            </button>
+          </div>
+          <label>
+            <span data-i18n="videoSubject">Video Subject</span>
+            <input
+              id="video-subject"
+              type="text"
+              placeholder="Example: How AI is changing everyday life"
+              data-i18n-placeholder="subjectPlaceholder"
+            />
+          </label>
+          <label>
+            <span data-i18n="scriptLanguage">Script Language</span>
+            <select id="script-language">
+              <option value="auto" data-i18n="autoDetect">Auto Detect</option>
+              <option value="en">English</option>
+              <option value="zh">中文</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </label>
+          <details class="advanced">
+            <summary data-i18n="advancedScript">Advanced Script Settings</summary>
+            <label>
+              <span data-i18n="paragraphNumber">Paragraph Number</span>
+              <select id="paragraph-number">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="scriptPrompt">Custom Script Prompt</span>
+              <textarea id="script-prompt" rows="3"></textarea>
+            </label>
+          </details>
+          <button type="button" class="outline-btn" id="gen-script-btn">
+            <span class="spark">✦</span>
+            <span data-i18n="genScript">Generate Script &amp; Keywords with AI</span>
+          </button>
+          <label>
+            <span class="label-row">
+              <span data-i18n="videoScript">Video Script (Optional)</span>
+              <span class="help" title="Leave empty to generate from the subject">?</span>
+            </span>
+            <textarea id="video-script" rows="6"></textarea>
+          </label>
+          <label>
+            <span data-i18n="articleText">Article Text (Optional)</span>
+            <textarea id="article-text" rows="4" data-i18n-placeholder="articlePlaceholder"></textarea>
+          </label>
+          <button type="button" class="outline-btn" id="gen-terms-btn">
+            <span class="spark">✦</span>
+            <span data-i18n="genKeywords">Generate Keywords with AI</span>
+          </button>
+          <label>
+            <span class="label-row">
+              <span data-i18n="videoKeywords">Video Keywords (English, Optional)</span>
+              <span class="help" title="Used to search stock footage">?</span>
+            </span>
+            <textarea id="video-terms" rows="3"></textarea>
+          </label>
+        </section>
+
+        <section class="panel">
+          <h2 data-i18n="videoSettings">Video Settings</h2>
+          <label>
+            <span data-i18n="videoSource">Video Source</span>
+            <select id="video-source">
+              <option value="pexels">Pexels</option>
+              <option value="pixabay">Pixabay</option>
+              <option value="coverr">Coverr</option>
+              <option value="local" data-i18n="localFiles">Local Files</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="concatMode">Video Concatenation Mode</span>
+            <select id="concat-mode">
+              <option value="random" data-i18n="randomConcat">Random Concatenation (Recommended)</option>
+              <option value="sequential" data-i18n="sequentialConcat">Sequential Concatenation</option>
+            </select>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="match-script" />
+            <span data-i18n="matchScript">Match Visuals to Script Order</span>
+            <span class="help" title="Search footage using each sentence in order">?</span>
+          </label>
+          <label>
+            <span data-i18n="transitionMode">Video Transition Mode</span>
+            <select id="transition-mode">
+              <option value="none" data-i18n="none">None</option>
+              <option value="FadeIn">FadeIn</option>
+              <option value="FadeOut">FadeOut</option>
+              <option value="SlideIn">SlideIn</option>
+              <option value="SlideOut">SlideOut</option>
+              <option value="Shuffle">Shuffle</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="aspectRatio">Video Aspect Ratio</span>
+            <select id="aspect-ratio">
+              <option value="9:16" data-i18n="portrait">Portrait 9:16</option>
+              <option value="16:9" data-i18n="landscape">Landscape 16:9</option>
+              <option value="1:1" data-i18n="square">Square 1:1</option>
+            </select>
+          </label>
+          <label>
+            <span class="label-row">
+              <span data-i18n="clipDuration">Maximum Clip Duration (seconds)</span>
+              <span class="help" title="Each stock clip is trimmed to this length">?</span>
+            </span>
+            <select id="clip-duration">
+              <option>2</option>
+              <option selected>3</option>
+              <option>4</option>
+              <option>5</option>
+              <option>6</option>
+              <option>8</option>
+              <option>10</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="videosPerRun">Videos per Run</span>
+            <select id="video-count">
+              <option>1</option>
+              <option>2</option>
+              <option>3</option>
+            </select>
+          </label>
+          <label>
+            <span class="label-row">
+              <span data-i18n="videoEncoder">Video Encoder</span>
+              <span class="help" title="libx264 is used by default">?</span>
+            </span>
+            <select id="video-encoder">
+              <option value="libx264" data-i18n="defaultRec">Default (Recommended)</option>
+              <option value="libx264">H.264</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="panel">
+          <h2 data-i18n="audioSettings">Audio Settings</h2>
+          <span class="field-label" data-i18n="voiceoverMode">Voiceover Mode</span>
+          <div class="segmented" id="voice-mode">
+            <button type="button" class="seg active" data-mode="auto" data-i18n="auto">Auto</button>
+            <button type="button" class="seg" data-mode="upload" data-i18n="upload">Upload</button>
+            <button type="button" class="seg" data-mode="none" data-i18n="noneVoice">None</button>
+          </div>
+          <div id="auto-voice-fields">
+            <label>
+              <span data-i18n="voiceoverService">Voiceover Service</span>
+              <select id="voice-service">
+                <option value="edge">Azure TTS V1</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="voiceName">Voice (match script language)</span>
+              <select id="voice-name"></select>
+            </label>
+            <div class="split">
+              <label>
+                <span class="label-row">
+                  <span data-i18n="voiceVolume">Voiceover Volume</span>
+                  <span class="help" title="Relative volume of the narration">?</span>
+                </span>
+                <select id="voice-volume">
+                  <option value="0.6">60%</option>
+                  <option value="0.8">80%</option>
+                  <option value="1" selected>100%</option>
+                  <option value="1.2">120%</option>
+                </select>
+              </label>
+              <label>
+                <span class="label-row">
+                  <span data-i18n="voiceSpeed">Voiceover Speed</span>
+                  <span class="help" title="Speech rate multiplier">?</span>
+                </span>
+                <select id="voice-rate">
+                  <option value="0.8">0.8×</option>
+                  <option value="1" selected>1.0×</option>
+                  <option value="1.2">1.2×</option>
+                  <option value="1.5">1.5×</option>
+                </select>
+              </label>
+            </div>
+            <button type="button" class="outline-btn" id="preview-voice-btn">
+              <span>♪</span>
+              <span data-i18n="previewVoice">Preview Voice</span>
+            </button>
+          </div>
+          <div id="upload-voice-fields" hidden>
+            <label>
+              <span data-i18n="uploadAudio">Upload Audio File</span>
+              <input type="file" id="custom-audio" accept="audio/*" />
+            </label>
+          </div>
+          <hr class="divider" />
+          <label>
+            <span data-i18n="bgmSource">Background Music Source</span>
+            <select id="bgm-type">
+              <option value="random" data-i18n="randomBgm">Random Background Music</option>
+              <option value="none" data-i18n="noBgm">No Background Music</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="bgmVolume">Background Music Volume</span>
+            <select id="bgm-volume">
+              <option value="0">0%</option>
+              <option value="0.1">10%</option>
+              <option value="0.2" selected>20%</option>
+              <option value="0.3">30%</option>
+              <option value="0.5">50%</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="panel">
+          <h2 data-i18n="subtitleSettings">Subtitle Settings</h2>
+          <label class="check">
+            <input type="checkbox" id="subtitle-enabled" checked />
+            <span data-i18n="enableSubtitles">Enable Subtitles</span>
+          </label>
+          <label>
+            <span data-i18n="font">Font</span>
+            <select id="font-name">
+              <option value="NotoSansCJK-Bold.ttc">NotoSansCJK-Bold.ttc</option>
+              <option value="NotoSansCJK-Regular.ttc">NotoSansCJK-Regular.ttc</option>
+              <option value="DejaVuSans-Bold.ttf">DejaVuSans-Bold.ttf</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="position">Position</span>
+            <select id="subtitle-position">
+              <option value="top" data-i18n="top">Top</option>
+              <option value="center" data-i18n="center">Center</option>
+              <option value="bottom" selected data-i18n="bottomRec">Bottom (Recommended)</option>
+            </select>
+          </label>
+          <div class="split">
+            <label>
+              <span data-i18n="color">Color</span>
+              <input type="color" id="text-color" value="#ffffff" />
+            </label>
+            <label>
+              <span data-i18n="fontSize">Font Size</span>
+              <div class="slider-row">
+                <input type="range" id="font-size" min="24" max="96" value="60" />
+                <span id="font-size-val" class="slider-val">60</span>
+              </div>
+            </label>
+          </div>
+          <div class="split">
+            <label>
+              <span data-i18n="outline">Outline</span>
+              <input type="color" id="stroke-color" value="#000000" />
+            </label>
+            <label>
+              <span data-i18n="outlineWidth">Outline Width</span>
+              <div class="slider-row">
+                <input type="range" id="stroke-width" min="0" max="4" step="0.25" value="1.5" />
+                <span id="stroke-width-val" class="slider-val">1.50</span>
+              </div>
+            </label>
+          </div>
+          <div class="split">
+            <label class="check">
+              <input type="checkbox" id="subtitle-bg" checked />
+              <span data-i18n="background">Background</span>
+            </label>
+            <label>
+              <span data-i18n="bgColor">Color</span>
+              <input type="color" id="subtitle-bg-color" value="#000000" />
+            </label>
+          </div>
+          <label class="check">
+            <input type="checkbox" id="rounded-bg" />
+            <span data-i18n="roundedBg">Rounded Background</span>
+            <span class="help" title="Round the subtitle background corners">?</span>
+          </label>
+          <button type="button" class="outline-btn" id="restore-subtitle-btn">
+            <span>↺</span>
+            <span data-i18n="restoreSubtitle">Restore Subtitle Defaults</span>
+          </button>
+        </section>
+      </main>
+
+      <div class="generate-wrap">
+        <button type="button" class="generate-btn" id="generate-btn" data-i18n="generateVideo">
+          Generate Video
+        </button>
+      </div>
+
+      <section class="result-panel" id="result-panel" hidden>
+        <h2 data-i18n="result">Generated Video</h2>
+        <div id="progress-box" class="progress-box">
+          <div class="progress-bar"><div id="progress-fill"></div></div>
+          <p id="progress-text" class="muted"></p>
+        </div>
+        <div id="result-videos" class="result-videos"></div>
+      </section>
+    </div>
+
+    <div class="modal" id="settings-modal" hidden>
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 data-i18n="basicSettings">Basic Settings</h3>
+          <button type="button" class="icon-btn" id="close-settings">×</button>
+        </div>
+        <p class="muted" data-i18n="settingsHint">
+          Stock footage uses Pexels without a key. LLM generation works offline with a built-in writer.
+          Optional API keys improve script quality and unlock more sources.
+        </p>
+        <label>
+          <span>Pexels API Key</span>
+          <input id="cfg-pexels" type="password" autocomplete="off" />
+        </label>
+        <label>
+          <span>Pixabay API Key</span>
+          <input id="cfg-pixabay" type="password" autocomplete="off" />
+        </label>
+        <label>
+          <span data-i18n="llmProvider">LLM Provider</span>
+          <select id="cfg-llm-provider">
+            <option value="builtin" data-i18n="builtinWriter">Built-in Writer (no key)</option>
+            <option value="openai">OpenAI Compatible</option>
+          </select>
+        </label>
+        <label>
+          <span>LLM Base URL</span>
+          <input id="cfg-llm-base" type="text" placeholder="https://api.openai.com/v1" />
+        </label>
+        <label>
+          <span>LLM API Key</span>
+          <input id="cfg-llm-key" type="password" autocomplete="off" />
+        </label>
+        <label>
+          <span>LLM Model</span>
+          <input id="cfg-llm-model" type="text" placeholder="gpt-4o-mini" />
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="ghost-btn" id="cancel-settings" data-i18n="cancel">Cancel</button>
+          <button type="button" class="primary-btn" id="save-settings" data-i18n="save">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="hotlist-modal" hidden>
+      <div class="modal-card hotlist-card">
+        <div class="modal-head">
+          <h3 data-i18n="hotList">Hot List</h3>
+          <button type="button" class="icon-btn" id="close-hotlist">×</button>
+        </div>
+        <p class="muted" data-i18n="hotListHint">Pick a trending topic or article URL, then generate a video.</p>
+        <label>
+          <span data-i18n="hotSource">Source</span>
+          <select id="hot-source"></select>
+        </label>
+        <div id="hot-items" class="hot-items"></div>
+      </div>
+    </div>
+
+    <audio id="preview-audio" hidden></audio>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

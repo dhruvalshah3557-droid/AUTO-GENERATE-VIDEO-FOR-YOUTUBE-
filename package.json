@@ -1,0 +1,15 @@
+{
+  "name": "moneyprinterturbo",
+  "version": "1.3.7",
+  "private": true,
+  "description": "An all-in-one AI short video generator",
+  "scripts": {
+    "dev": "node start.mjs",
+    "start": "node start.mjs",
+    "frontend": "vite --host 0.0.0.0 --port 8501",
+    "backend": "python3 server/main.py"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
