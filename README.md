@@ -4,7 +4,8 @@ An all-in-one AI short video generator. Provide a topic, article URL, or hot-lis
 
 ## Features
 
-- Four-column WebUI matching MoneyPrinterTurbo
+- Auto Studio: finds trending topics, writes scripts, and renders videos; you only preview and keep or skip
+- Four-column Manual Studio matching MoneyPrinterTurbo
 - Built-in writer plus optional OpenAI-compatible LLM
 - Free Edge TTS (no key) with 小简 / 老陈 dual-voice for dialogue styles
 - Pexels, Wikimedia, and generated color clips as footage fallback

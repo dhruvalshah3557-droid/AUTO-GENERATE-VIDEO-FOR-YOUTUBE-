@@ -48,7 +48,70 @@
         </div>
       </header>
 
-      <main class="grid" id="main-grid">
+      <nav class="mode-tabs" id="mode-tabs">
+        <button type="button" class="mode-tab active" data-mode="auto" data-i18n="autoStudio">Auto Studio</button>
+        <button type="button" class="mode-tab" data-mode="manual" data-i18n="manualStudio">Manual Studio</button>
+      </nav>
+
+      <section class="auto-studio" id="auto-studio">
+        <div class="auto-hero panel">
+          <h2 data-i18n="autoTitle">Auto Studio</h2>
+          <p class="muted" data-i18n="autoHint">
+            Pick a source and count. The app finds trending topics, writes scripts, and renders videos. You only preview and keep or skip.
+          </p>
+          <div class="auto-controls">
+            <label>
+              <span data-i18n="hotSource">Source</span>
+              <select id="auto-source">
+                <option value="all" data-i18n="allSources">All sources</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="autoCount">Videos this run</span>
+              <select id="auto-count">
+                <option>1</option>
+                <option selected>3</option>
+                <option>5</option>
+                <option>6</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="videoStyle">Script Style</span>
+              <select id="auto-style">
+                <option value="podcast" data-i18n="stylePodcast">Podcast</option>
+                <option value="crosstalk" data-i18n="styleCrosstalk">Crosstalk</option>
+                <option value="talkshow" data-i18n="styleTalkshow">Talkshow</option>
+                <option value="narration" data-i18n="styleNarration">Narration</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="scriptLanguage">Script Language</span>
+              <select id="auto-language">
+                <option value="auto" data-i18n="autoDetect">Auto Detect</option>
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+          </div>
+          <div class="auto-actions">
+            <button type="button" class="generate-btn auto-run-btn" id="auto-run-btn" data-i18n="autoRun">
+              Find Trends &amp; Make Videos
+            </button>
+            <p id="auto-status" class="muted"></p>
+          </div>
+        </div>
+        <div class="library-filters">
+          <button type="button" class="chip active" data-filter="pending" data-i18n="filterPending">To review</button>
+          <button type="button" class="chip" data-filter="keep" data-i18n="filterKeep">Kept</button>
+          <button type="button" class="chip" data-filter="skip" data-i18n="filterSkip">Skipped</button>
+          <button type="button" class="chip" data-filter="all" data-i18n="filterAll">All</button>
+        </div>
+        <div id="library-grid" class="library-grid">
+          <p class="muted" data-i18n="noLibrary">No videos yet. Start Auto Studio.</p>
+        </div>
+      </section>
+
+      <main class="grid" id="main-grid" hidden>
         <section class="panel">
           <h2 data-i18n="scriptSettings">Video Script Settings</h2>
           <label>
@@ -367,7 +430,7 @@
         </section>
       </main>
 
-      <div class="generate-wrap">
+      <div class="generate-wrap" hidden>
         <button type="button" class="generate-btn" id="generate-btn" data-i18n="generateVideo">
           Generate Video
         </button>

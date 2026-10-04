@@ -285,6 +285,53 @@ def script_from_dialogues(dialogues: list[dict[str, str]]) -> str:
     return "\n".join(f"{item['speaker']}：{item['content']}" for item in dialogues)
 
 
+def looks_like_article_url(url: str) -> bool:
+    if not is_public_http_url(url):
+        return False
+    parsed = urllib.parse.urlparse(url.strip())
+    path = (parsed.path or "").rstrip("/")
+    return bool(path) and path != ""
+
+
+def flatten_hotlist(payload: dict[str, Any], source: str = "all") -> list[dict[str, str]]:
+    items: list[dict[str, str]] = []
+    wanted = (source or "all").strip()
+    for group in payload.get("data") or []:
+        name = str(group.get("name") or "").strip()
+        if wanted not in {"", "all"} and name != wanted:
+            continue
+        for row in group.get("data") or []:
+            title = str(row.get("title") or row.get("name") or "").strip()
+            if not title:
+                continue
+            items.append(
+                {
+                    "title": title,
+                    "url": str(row.get("url") or row.get("link") or "").strip(),
+                    "source": name,
+                    "hot": str(row.get("hot") or row.get("hotval") or ""),
+                }
+            )
+    return items
+
+
+def pick_hot_topics(payload: dict[str, Any], source: str, count: int, used: set[str]) -> list[dict[str, str]]:
+    items = flatten_hotlist(payload, source)
+    fresh = [item for item in items if item["title"].casefold() not in used]
+    pool = fresh or items
+    picked: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for item in pool:
+        key = item["title"].casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        picked.append(item)
+        if len(picked) >= count:
+            break
+    return picked
+
+
 def is_public_http_url(url: str) -> bool:
     parsed = urllib.parse.urlparse((url or "").strip())
     if parsed.scheme not in {"http", "https"}:
@@ -312,6 +359,9 @@ def _strip_html(raw: str) -> str:
     text = text.strip()
     if title and title.lower() not in text.lower()[:200]:
         text = f"{title}\n{text}"
+    lowered = text.lower()
+    if any(marker in lowered for marker in ("安全检测", "captcha", "access denied", "just a moment")):
+        raise ValueError("article page is blocked or empty")
     return text[:8000]
 
 

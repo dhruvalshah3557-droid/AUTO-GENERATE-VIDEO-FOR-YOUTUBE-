@@ -20,7 +20,9 @@ from llm import (
     fetch_hotlist,
     fetch_url_text,
     generate_script_with_llm,
+    looks_like_article_url,
     parse_dialogues,
+    pick_hot_topics,
 )
 from media import (
     STORAGE,
@@ -39,8 +41,19 @@ from media import (
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "config.json"
+LIBRARY_PATH = STORAGE / "public" / "library.json"
+USED_TOPICS_PATH = STORAGE / "public" / "used-topics.json"
 TASKS: dict[str, dict[str, Any]] = {}
 TASKS_LOCK = threading.Lock()
+AUTO_LOCK = threading.Lock()
+AUTO_STATE: dict[str, Any] = {
+    "running": False,
+    "batch_id": None,
+    "message": "",
+    "total": 0,
+    "done": 0,
+    "task_ids": [],
+}
 
 app = FastAPI(title="MoneyPrinterTurbo", version="1.3.7")
 app.add_middleware(
@@ -86,6 +99,51 @@ def save_settings(payload: dict[str, Any]) -> dict[str, Any]:
     return settings
 
 
+def load_json_file(path: Path, fallback: Any) -> Any:
+    if not path.exists():
+        return fallback
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return fallback
+
+
+def save_json_file(path: Path, payload: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def used_topics() -> set[str]:
+    raw = load_json_file(USED_TOPICS_PATH, [])
+    return {str(item).casefold() for item in raw}
+
+
+def remember_topic(title: str) -> None:
+    topics = load_json_file(USED_TOPICS_PATH, [])
+    if title and title not in topics:
+        topics.append(title)
+        save_json_file(USED_TOPICS_PATH, topics[-200:])
+
+
+def persist_library() -> None:
+    with TASKS_LOCK:
+        rows = [public_task(item) for item in TASKS.values()]
+    save_json_file(LIBRARY_PATH, rows)
+
+
+def restore_library() -> None:
+    rows = load_json_file(LIBRARY_PATH, [])
+    if not isinstance(rows, list):
+        return
+    with TASKS_LOCK:
+        for row in rows:
+            task_id = str(row.get("task_id") or "")
+            if not task_id:
+                continue
+            TASKS.setdefault(task_id, {"task_id": task_id})
+            TASKS[task_id].update(row)
+
+
 def public_task(task: dict[str, Any]) -> dict[str, Any]:
     return {
         "task_id": task["task_id"],
@@ -95,7 +153,16 @@ def public_task(task: dict[str, Any]) -> dict[str, Any]:
         "message": task.get("message", ""),
         "videos": task.get("videos", []),
         "error": task.get("error"),
+        "script": task.get("script", ""),
+        "video_style": task.get("video_style", "narration"),
+        "source_url": task.get("source_url", ""),
+        "hot_source": task.get("hot_source", ""),
+        "decision": task.get("decision", "pending"),
+        "auto": bool(task.get("auto")),
     }
+
+
+restore_library()
 
 
 def update_task(task_id: str, **fields: Any) -> None:
@@ -256,12 +323,15 @@ async def generate_one(task_id: str, params: dict[str, Any], custom_audio: str |
     style = (params.get("video_style") or "narration").strip().lower()
     article_text = (params.get("article_text") or "").strip()
     source_url = (params.get("source_url") or "").strip()
-    if source_url and not article_text:
+    if source_url and not article_text and looks_like_article_url(source_url):
         update_task(task_id, progress=6, message="Fetching article")
-        article = fetch_url_text(source_url)
-        article_text = article["content"]
-        subject = subject if params.get("video_subject") else article["title"] or subject
-        extra = (extra + "\n" + article_text).strip()
+        try:
+            article = fetch_url_text(source_url)
+            article_text = article["content"]
+            subject = subject if params.get("video_subject") else article["title"] or subject
+            extra = (extra + "\n" + article_text).strip()
+        except Exception:
+            article_text = ""
     elif article_text:
         extra = (extra + "\n" + article_text).strip()
     script = (params.get("video_script") or "").strip()
@@ -276,6 +346,7 @@ async def generate_one(task_id: str, params: dict[str, Any], custom_audio: str |
             style,
         )
     dialogues = parse_dialogues(script)
+    update_task(task_id, script=script, subject=subject, source_url=source_url, video_style=style)
     terms = parse_terms(params.get("video_terms") or "", subject, script + " " + article_text)
     aspect = params.get("video_aspect") or "9:16"
     width, height = aspect_size(aspect)
@@ -348,11 +419,13 @@ def run_task(task_id: str, params: dict[str, Any], custom_audio: str | None) -> 
         update_task(task_id, state=4, progress=4, message="Starting")
         video_url = asyncio.run(generate_one(task_id, params, custom_audio))
         update_task(task_id, state=1, progress=100, message="Complete", videos=[video_url], error=None)
+        persist_library()
     except Exception as exc:
         import traceback
 
         traceback.print_exc()
         update_task(task_id, state=-1, progress=0, message="Failed", error=str(exc))
+        persist_library()
 
 
 @app.post("/api/videos")
@@ -387,7 +460,176 @@ async def create_video(payload: str = Form(...), custom_audio: UploadFile | None
     )
     thread = threading.Thread(target=run_task, args=(task_id, params, audio_path), daemon=True)
     thread.start()
+    persist_library()
     return {"status": 200, "data": {"task_id": task_id}}
+
+
+class AutoBatchBody(BaseModel):
+    count: int = 3
+    hot_source: str = "all"
+    video_style: str = "podcast"
+    video_language: str = "auto"
+    video_aspect: str = "9:16"
+    video_clip_duration: int = 3
+    voice_mode: str = "auto"
+    voice_name: str = "zh-CN-XiaoxiaoNeural"
+    voice_rate: float = 1.0
+    voice_volume: float = 1.0
+    bgm_type: str = "random"
+    bgm_volume: float = 0.2
+    subtitle_enabled: bool = True
+    font_name: str = "NotoSansCJK-Bold.ttc"
+    subtitle_position: str = "bottom"
+    text_fore_color: str = "#ffffff"
+    font_size: int = 60
+    stroke_color: str = "#000000"
+    stroke_width: float = 1.5
+    fetch_article: bool = True
+
+
+class DecisionBody(BaseModel):
+    decision: str
+
+
+def auto_status() -> dict[str, Any]:
+    with AUTO_LOCK:
+        return dict(AUTO_STATE)
+
+
+def queue_auto_task(params: dict[str, Any]) -> str:
+    task_id = uuid.uuid4().hex
+    update_task(
+        task_id,
+        subject=params.get("video_subject") or params.get("source_url") or "untitled",
+        state=4,
+        progress=1,
+        message="Queued",
+        videos=[],
+        error=None,
+        script="",
+        video_style=params.get("video_style") or "narration",
+        source_url=params.get("source_url") or "",
+        hot_source=params.get("hot_source") or "",
+        decision="pending",
+        auto=True,
+    )
+    thread = threading.Thread(target=run_task, args=(task_id, params, None), daemon=True)
+    thread.start()
+    return task_id
+
+
+def run_auto_batch(body: dict[str, Any]) -> None:
+    count = max(1, min(int(body.get("count") or 3), 6))
+    source = body.get("hot_source") or "all"
+    style = body.get("video_style") or "podcast"
+    with AUTO_LOCK:
+        AUTO_STATE.update({"running": True, "message": "Picking trending topics", "done": 0, "total": count})
+    try:
+        topics = pick_hot_topics(fetch_hotlist(), source, count, used_topics())
+        if not topics:
+            raise RuntimeError("no trending topics available")
+        task_ids: list[str] = []
+        with AUTO_LOCK:
+            AUTO_STATE["total"] = len(topics)
+            AUTO_STATE["message"] = f"Queued {len(topics)} trending videos"
+        for topic in topics:
+            article_text = ""
+            source_url = topic.get("url") or ""
+            if body.get("fetch_article", True) and looks_like_article_url(source_url):
+                try:
+                    article_text = fetch_url_text(source_url).get("content") or ""
+                except Exception:
+                    article_text = ""
+            params = {
+                "video_subject": topic["title"],
+                "video_language": body.get("video_language") or "auto",
+                "paragraph_number": 3,
+                "video_script_prompt": "",
+                "video_script": "",
+                "video_terms": "",
+                "video_style": style,
+                "source_url": source_url,
+                "article_text": article_text,
+                "video_aspect": body.get("video_aspect") or "9:16",
+                "video_clip_duration": body.get("video_clip_duration") or 3,
+                "voice_mode": body.get("voice_mode") or "auto",
+                "voice_name": body.get("voice_name") or "zh-CN-XiaoxiaoNeural",
+                "voice_rate": body.get("voice_rate") or 1.0,
+                "voice_volume": body.get("voice_volume") or 1.0,
+                "bgm_type": body.get("bgm_type") or "random",
+                "bgm_volume": body.get("bgm_volume") or 0.2,
+                "subtitle_enabled": body.get("subtitle_enabled", True),
+                "font_name": body.get("font_name") or "NotoSansCJK-Bold.ttc",
+                "subtitle_position": body.get("subtitle_position") or "bottom",
+                "text_fore_color": body.get("text_fore_color") or "#ffffff",
+                "font_size": body.get("font_size") or 60,
+                "stroke_color": body.get("stroke_color") or "#000000",
+                "stroke_width": body.get("stroke_width") or 1.5,
+                "hot_source": topic.get("source") or source,
+            }
+            remember_topic(topic["title"])
+            task_ids.append(queue_auto_task(params))
+            with AUTO_LOCK:
+                AUTO_STATE["done"] = len(task_ids)
+                AUTO_STATE["task_ids"] = list(task_ids)
+                AUTO_STATE["message"] = f"Started {len(task_ids)}/{len(topics)}: {topic['title']}"
+        persist_library()
+        with AUTO_LOCK:
+            AUTO_STATE["running"] = False
+            AUTO_STATE["message"] = "Auto batch queued. Preview and keep or skip."
+    except Exception as exc:
+        with AUTO_LOCK:
+            AUTO_STATE["running"] = False
+            AUTO_STATE["message"] = f"Auto batch failed: {exc}"
+
+
+@app.get("/api/auto")
+def get_auto():
+    return auto_status()
+
+
+@app.post("/api/auto")
+def start_auto(body: AutoBatchBody):
+    with AUTO_LOCK:
+        if AUTO_STATE.get("running"):
+            raise HTTPException(status_code=409, detail="auto batch already running")
+        AUTO_STATE.update(
+            {
+                "running": True,
+                "batch_id": uuid.uuid4().hex,
+                "message": "Starting auto batch",
+                "total": max(1, min(body.count, 6)),
+                "done": 0,
+                "task_ids": [],
+            }
+        )
+    thread = threading.Thread(target=run_auto_batch, args=(body.model_dump(),), daemon=True)
+    thread.start()
+    return {"status": 200, "data": auto_status()}
+
+
+@app.get("/api/library")
+def get_library(decision: str = "all"):
+    with TASKS_LOCK:
+        tasks = [public_task(item) for item in reversed(list(TASKS.values()))]
+    if decision and decision != "all":
+        tasks = [item for item in tasks if item.get("decision") == decision]
+    return {"tasks": tasks, "total": len(tasks), "auto": auto_status()}
+
+
+@app.post("/api/tasks/{task_id}/decision")
+def decide_task(task_id: str, body: DecisionBody):
+    decision = (body.decision or "").strip().lower()
+    if decision not in {"keep", "skip", "pending"}:
+        raise HTTPException(status_code=400, detail="decision must be keep, skip, or pending")
+    with TASKS_LOCK:
+        task = TASKS.get(task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail="task not found")
+        task["decision"] = decision
+        snapshot = public_task(task)
+    persist_library()
+    return {"status": 200, "data": snapshot}
 
 
 @app.exception_handler(Exception)
