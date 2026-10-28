@@ -42,4 +42,4 @@ jobs:
           test -f /usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf
           test -f /usr/share/fonts/truetype/lato/Lato-Regular.ttf
       - name: Run synthetic renderer compatibility checks
-        run: python tests/test_pillow_compat.py
+        run: PYTHONPATH=. python tests/test_pillow_compat.py
