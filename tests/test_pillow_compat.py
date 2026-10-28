@@ -1,10 +1,17 @@
 """Secret-free Pillow compatibility checks for the Colour Diam renderer."""
 
 from pathlib import Path
+import sys
 from tempfile import TemporaryDirectory
+import types
 
 import PIL
 from PIL import Image, ImageDraw
+
+ROOT = Path(__file__).resolve().parents[1]
+generator_package = types.ModuleType("generator")
+generator_package.__path__ = [str(ROOT / "generator")]
+sys.modules["generator"] = generator_package
 
 from generator import render
 from generator.campaigns import get_campaign
