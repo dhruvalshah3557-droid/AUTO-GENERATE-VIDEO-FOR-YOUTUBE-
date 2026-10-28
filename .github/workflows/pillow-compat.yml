@@ -1,0 +1,45 @@
+name: Pillow compatibility
+
+on:
+  pull_request:
+    paths:
+      - 'requirements.txt'
+      - 'generator/**'
+      - 'tests/test_pillow_compat.py'
+      - '.github/workflows/pillow-compat.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pillow-compat-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  synthetic-render:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - name: Check out reviewed source
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up supported Python
+        uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install patched Pillow only
+        run: python -m pip install --disable-pip-version-check 'pillow==13.0.0'
+      - name: Verify required system fonts
+        run: |
+          test -f /usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf
+          test -f /usr/share/fonts/truetype/lato/Lato-Regular.ttf
+      - name: Run synthetic renderer compatibility checks
+        run: PYTHONPATH=. python tests/test_pillow_compat.py
