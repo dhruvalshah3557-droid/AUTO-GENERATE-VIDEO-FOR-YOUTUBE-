@@ -31,7 +31,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up supported Python
-        uses: actions/setup-python@v7.0.0
+        uses: actions/setup-python@v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
