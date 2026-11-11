@@ -14,7 +14,7 @@ generator_package.__path__ = [str(ROOT / "generator")]
 sys.modules["generator"] = generator_package
 
 from generator import render
-from generator.campaigns import get_campaign
+from generator.campaigns import CAMPAIGNS, get_campaign
 
 
 def _version_tuple(value: str) -> tuple[int, ...]:
@@ -31,7 +31,7 @@ def _assert_frame(image: Image.Image, size: tuple[int, int]) -> None:
 def main() -> None:
     assert _version_tuple(PIL.__version__) >= (13, 0, 0), PIL.__version__
 
-    size = (320, 180)
+    sizes = [(320, 180), (180, 320), (240, 240)]
     campaign = get_campaign("register")
 
     with TemporaryDirectory() as tmpdir:
@@ -43,33 +43,41 @@ def main() -> None:
         draw.ellipse((42, 12, 88, 58), fill=(232, 197, 71, 180))
         synthetic.save(source)
 
-        covered = render._cover(source, size, zoom=1.05, pan=0.2)
-        _assert_frame(covered, size)
-        _assert_frame(render._vignette(covered), size)
-        _assert_frame(render._scene_image(source, "Synthetic fixture", "Not published", *size, 1.25), size)
+        for size in sizes:
+            covered = render._cover(source, size, zoom=1.05, pan=0.2)
+            _assert_frame(covered, size)
+            _assert_frame(render._vignette(covered), size)
+            _assert_frame(render._scene_image(source, "Synthetic fixture", "Not published", *size, 1.25), size)
+            missing = render._cover(tmp / "missing.png", size, zoom=1.2, pan=-2.0)
+            _assert_frame(missing, size)
 
-        scenes = [
-            render._scene_logo(*size, 0.25, 0.5, campaign),
-            render._scene_hook(*size, campaign),
-            render._scene_colors(*size, 1.0),
-            render._scene_trust(*size, campaign),
-            render._scene_cta(*size, 2.0, 1.0, campaign),
-            render.render_frame(0.0, [0.5, 1.0, 1.5, 2.0], size, "register"),
-            render.render_frame(2.4, [0.5, 1.0, 1.5, 2.0], size, "register"),
-        ]
+            scenes = [
+                render._scene_logo(*size, 0.25, 0.5, campaign),
+                render._scene_hook(*size, campaign),
+                render._scene_colors(*size, 1.0),
+                render._scene_trust(*size, campaign),
+                render._scene_cta(*size, 2.0, 1.0, campaign),
+                render.render_frame(0.0, [0.5, 1.0, 1.5, 2.0], size, "register"),
+                render.render_frame(2.4, [0.5, 1.0, 1.5, 2.0], size, "shop"),
+                render.render_frame(1.1, [], size, "enquire"),
+            ]
 
-        for index, frame in enumerate(scenes):
-            _assert_frame(frame, size)
-            png = tmp / f"frame-{index}.png"
-            jpg = tmp / f"frame-{index}.jpg"
-            frame.save(png)
-            frame.convert("RGB").save(jpg, quality=90)
-            with Image.open(png) as reopened_png:
-                reopened_png.load()
-                assert reopened_png.size == size
-            with Image.open(jpg) as reopened_jpg:
-                reopened_jpg.load()
-                assert reopened_jpg.size == size
+            for index, frame in enumerate(scenes):
+                _assert_frame(frame, size)
+                png = tmp / f"frame-{size[0]}x{size[1]}-{index}.png"
+                jpg = tmp / f"frame-{size[0]}x{size[1]}-{index}.jpg"
+                frame.save(png)
+                frame.convert("RGB").save(jpg, quality=90)
+                with Image.open(png) as reopened_png:
+                    reopened_png.load()
+                    assert reopened_png.size == size
+                with Image.open(jpg) as reopened_jpg:
+                    reopened_jpg.load()
+                    assert reopened_jpg.size == size
+
+        for name in CAMPAIGNS:
+            frame = render.render_frame(0.8, [0.25, 0.75, 1.25], (320, 180), name)
+            _assert_frame(frame, (320, 180))
 
     print(f"Pillow {PIL.__version__} passed synthetic renderer compatibility checks")
 

@@ -26,7 +26,14 @@ def status():
 
 @app.post("/api/generate/<campaign>/<fmt>")
 def generate(campaign: str, fmt: str):
-    result = generate_brand_video(fmt, campaign)
+    if campaign not in CAMPAIGNS:
+        return jsonify({"error": f"Unknown campaign: {campaign}"}), 400
+    if fmt not in FORMATS:
+        return jsonify({"error": f"Unknown format: {fmt}"}), 400
+    try:
+        result = generate_brand_video(fmt, campaign)
+    except Exception as exc:
+        return jsonify({"error": str(exc), "campaign": campaign, "format": fmt}), 500
     result["media_url"] = f"/media/{Path(result['video']).name}"
     return jsonify(result)
 

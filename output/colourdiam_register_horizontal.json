@@ -1,0 +1,23 @@
+{
+  "video": "/workspace/output/colourdiam_register_horizontal.mp4",
+  "poster": "/workspace/output/colourdiam_register_horizontal_poster.jpg",
+  "caption": "/workspace/output/colourdiam_register_horizontal.txt",
+  "beats_csv": "/workspace/output/beats.csv",
+  "audio": "/workspace/assets/music/colourdiam_score.wav",
+  "tempo": 80.74951171875,
+  "beat_count": 30,
+  "duration": 24.0,
+  "format": "horizontal",
+  "campaign": "register",
+  "cta": "REGISTER NOW",
+  "url": "https://www.colourdiam.com/register",
+  "titles": [
+    "Register at Colour Diam | Fancy Colour Diamonds Since 1984",
+    "Members See the Colour First | www.colourdiam.com/register",
+    "GIA Certified Colour Diamonds | Create Your Account Today"
+  ],
+  "size": [
+    1280,
+    720
+  ]
+}

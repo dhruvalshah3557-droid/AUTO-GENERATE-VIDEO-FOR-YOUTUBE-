@@ -52,6 +52,32 @@
         "prefix": "chore",
         "include": "scope"
       }
+    },
+    {
+      "package-ecosystem": "github-actions",
+      "directory": "/",
+      "schedule": {
+        "interval": "weekly",
+        "day": "monday",
+        "time": "09:00",
+        "timezone": "Asia/Kolkata"
+      },
+      "open-pull-requests-limit": 3,
+      "groups": {
+        "compatible-updates": {
+          "patterns": [
+            "*"
+          ],
+          "update-types": [
+            "patch",
+            "minor"
+          ]
+        }
+      },
+      "commit-message": {
+        "prefix": "chore",
+        "include": "scope"
+      }
     }
   ]
 }

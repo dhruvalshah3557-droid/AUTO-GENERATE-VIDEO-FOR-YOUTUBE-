@@ -9,6 +9,10 @@ CAMPAIGNS = {
         "promise": "GIA certified  ·  Family since 1984",
         "trust": "Free shipping  ·  100% money back  ·  Lifetime warranty",
         "close": "Create your account. Own the sparkle.",
+        "image_caption": "Fancy Colour Diamonds",
+        "image_sub": "Reserved for members",
+        "product_caption": "Private colour access",
+        "product_sub": "Register to unlock pricing",
         "caption": (
             "Fancy colour diamonds, reserved for members.\n"
             "Register at www.colourdiam.com/register\n"
@@ -26,6 +30,10 @@ CAMPAIGNS = {
         "promise": "Rings  ·  Earrings  ·  Necklaces  ·  Bracelets",
         "trust": "Free shipping & returns  ·  Secure checkout",
         "close": "Shop now and shine bright.",
+        "image_caption": "Ready to ship",
+        "image_sub": "Certified colour diamond jewelry",
+        "product_caption": "Solitaire elegance",
+        "product_sub": "Shop rings, earrings, necklaces",
         "caption": (
             "Elegant colour diamond jewelry, ready to ship.\n"
             "Shop www.colourdiam.com/product\n"
@@ -43,6 +51,10 @@ CAMPAIGNS = {
         "promise": "Personal guidance  ·  Video consultation  ·  Custom design",
         "trust": "Call +852 96440155  ·  Family since 1984",
         "close": "Enquire today. We will find your colour.",
+        "image_caption": "Rare pink, blue, yellow",
+        "image_sub": "Collectors and custom design",
+        "product_caption": "Your colour, found",
+        "product_sub": "Call +852 96440155",
         "caption": (
             "Looking for a rare pink, blue or yellow diamond?\n"
             "Enquire at www.colourdiam.com/contactus\n"

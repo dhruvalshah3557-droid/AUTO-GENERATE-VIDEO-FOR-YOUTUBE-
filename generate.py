@@ -2,13 +2,14 @@
 import argparse
 import json
 
+from generator.brand import FORMATS
 from generator.campaigns import CAMPAIGNS
 from generator.pipeline import generate_brand_video
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate Colour Diam conversion ads")
-    parser.add_argument("--format", choices=["vertical", "horizontal", "square"], default="vertical")
+    parser.add_argument("--format", choices=sorted(FORMATS), default="vertical")
     parser.add_argument("--campaign", choices=sorted(CAMPAIGNS), default="register")
     parser.add_argument("--all", action="store_true", help="Render every campaign x format")
     args = parser.parse_args()

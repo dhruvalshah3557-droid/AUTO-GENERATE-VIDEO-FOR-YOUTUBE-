@@ -1,4 +1,4 @@
-from generator.campaigns import CAMPAIGNS
+from generator.campaigns import get_campaign
 
 
 YOUTUBE_TITLES = {
@@ -55,7 +55,7 @@ Shop: https://www.colourdiam.com/product
 
 
 def pack_for(campaign: str) -> dict:
-    data = CAMPAIGNS[campaign]
+    data = get_campaign(campaign)
     return {
         "campaign": campaign,
         "cta": data["primary_cta"],

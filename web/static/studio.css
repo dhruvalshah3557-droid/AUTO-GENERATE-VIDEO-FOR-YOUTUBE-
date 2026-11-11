@@ -33,6 +33,15 @@ h1 { font-family: "Cormorant Garamond", serif; font-size: clamp(40px, 6.4vw, 78p
 .kpis article { border: 1px solid rgba(194,153,88,0.25); padding: 16px 18px; }
 .kpis strong { display: block; color: var(--gold); font-size: 22px; margin-bottom: 6px; }
 .kpis span { color: var(--mute); font-size: 13px; line-height: 1.5; }
+.trust-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+.trust-row span {
+  border: 1px solid rgba(194,153,88,0.28);
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+}
 .actions { display: flex; gap: 14px; margin-top: 36px; flex-wrap: wrap; }
 button {
   border: none;
@@ -56,3 +65,5 @@ button:disabled { opacity: 0.5; cursor: wait; }
 .download { color: var(--gold); text-decoration: none; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; margin-right: 16px; }
 .empty { padding: 64px 28px; text-align: center; color: var(--mute); }
 footer { padding: 28px 8vw 48px; color: var(--mute); font-size: 12px; letter-spacing: 0.08em; }
+.footer-ctas { margin-top: 12px; display: flex; gap: 18px; }
+.footer-ctas a { color: var(--gold); text-decoration: none; letter-spacing: 0.16em; text-transform: uppercase; }

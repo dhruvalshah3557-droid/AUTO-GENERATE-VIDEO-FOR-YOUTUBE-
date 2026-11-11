@@ -24,9 +24,18 @@ python3 generate.py --campaign register --format vertical
 python3 generate.py --campaign shop --format vertical
 python3 generate.py --campaign enquire --format vertical
 python3 generate.py --campaign register --format horizontal
+python3 generate.py --campaign register --format square
+python3 generate.py --all
 ```
 
 Output: `output/colourdiam_<campaign>_<format>.mp4` plus caption and YouTube copy.
+
+## Tests
+
+```bash
+PYTHONPATH=. python3 tests/test_pillow_compat.py
+PYTHONPATH=. python3 tests/test_campaigns.py
+```
 
 ## Studio
 

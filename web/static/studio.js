@@ -5,14 +5,14 @@ async function generate(campaign, fmt) {
   status.textContent = "Tracking beats and rendering the " + campaign + " film. This can take a minute.";
   try {
     const res = await fetch("/api/generate/" + campaign + "/" + fmt, { method: "POST" });
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error("Render failed");
+      throw new Error(data.error || "Render failed");
     }
-    const data = await res.json();
     status.textContent = data.cta + " film ready · " + Math.round(data.tempo) + " BPM · " + data.url;
     window.location.reload();
   } catch (err) {
-    status.textContent = "Could not render. Try again.";
+    status.textContent = err.message || "Could not render. Try again.";
     buttons.forEach((b) => { b.disabled = false; });
   }
 }

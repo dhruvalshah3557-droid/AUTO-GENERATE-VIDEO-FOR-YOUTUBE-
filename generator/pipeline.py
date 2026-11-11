@@ -1,15 +1,19 @@
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
 from generator.beats import save_beats_csv, track_beats
 from generator.brand import ASSETS, FORMATS, FPS, OUTPUT
 from generator.campaigns import CAMPAIGNS, get_campaign
+from generator.copy import pack_for
 from generator.music import generate_brand_score
 from generator.render import render_frame
 
 
 def _encode_video(frames_dir: Path, audio_path: Path, out_mp4: Path, size: tuple[int, int]) -> None:
+    if shutil.which("ffmpeg") is None:
+        raise RuntimeError("ffmpeg is required to encode Colour Diam ads")
     w, h = size
     cmd = [
         "ffmpeg",
@@ -35,13 +39,17 @@ def _encode_video(frames_dir: Path, audio_path: Path, out_mp4: Path, size: tuple
         f"scale={w}:{h}",
         str(out_mp4),
     ]
-    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "ffmpeg failed").strip().splitlines()[-8:]
+        raise RuntimeError("ffmpeg encode failed:\n" + "\n".join(detail))
 
 
 def generate_brand_video(fmt: str = "vertical", campaign: str = "register") -> dict:
     if fmt not in FORMATS:
         raise ValueError(f"Unknown format: {fmt}")
     camp = get_campaign(campaign)
+    copy = pack_for(campaign)
     spec = FORMATS[fmt]
     size = (spec["width"], spec["height"])
     OUTPUT.mkdir(parents=True, exist_ok=True)
@@ -54,7 +62,7 @@ def generate_brand_video(fmt: str = "vertical", campaign: str = "register") -> d
     csv_path = save_beats_csv(beat_data["times"], OUTPUT / "beats.csv")
 
     duration = beat_data["duration"]
-    total_frames = int(duration * FPS)
+    total_frames = max(1, int(duration * FPS))
     beats = beat_data["times"]
     for i in range(total_frames):
         t = i / FPS
@@ -63,13 +71,18 @@ def generate_brand_video(fmt: str = "vertical", campaign: str = "register") -> d
 
     out_mp4 = OUTPUT / f"colourdiam_{campaign}_{fmt}.mp4"
     _encode_video(frames_dir, audio_path, out_mp4, size)
-    poster = frames_dir / "frame_00012.jpg"
+    poster_src = frames_dir / "frame_00012.jpg"
+    if not poster_src.exists():
+        poster_src = frames_dir / "frame_00000.jpg"
     poster_out = OUTPUT / f"colourdiam_{campaign}_{fmt}_poster.jpg"
-    if poster.exists():
-        poster_out.write_bytes(poster.read_bytes())
+    if poster_src.exists():
+        poster_out.write_bytes(poster_src.read_bytes())
 
     caption_path = OUTPUT / f"colourdiam_{campaign}_{fmt}.txt"
-    caption_path.write_text(camp["caption"] + "\n\n" + camp["hashtags"] + "\n", encoding="utf-8")
+    caption_path.write_text(
+        camp["caption"] + "\n\n" + camp["hashtags"] + "\n\n" + copy["description"],
+        encoding="utf-8",
+    )
     meta_path = OUTPUT / f"colourdiam_{campaign}_{fmt}.json"
     result = {
         "video": str(out_mp4),
@@ -84,6 +97,7 @@ def generate_brand_video(fmt: str = "vertical", campaign: str = "register") -> d
         "campaign": campaign,
         "cta": camp["primary_cta"],
         "url": camp["url"],
+        "titles": copy["titles"],
         "size": size,
     }
     meta_path.write_text(json.dumps(result, indent=2), encoding="utf-8")

@@ -24,13 +24,44 @@ DIAMOND_COLORS = [
     ("Brown", (166, 124, 90)),
 ]
 
+
+def _first_font(*candidates: str) -> str:
+    for path in candidates:
+        if Path(path).is_file():
+            return path
+    return candidates[-1]
+
+
 FONTS = {
-    "serif": "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-    "serif_bold": "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf",
-    "serif_italic": "/usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf",
-    "sans": "/usr/share/fonts/truetype/lato/Lato-Regular.ttf",
-    "sans_light": "/usr/share/fonts/truetype/lato/Lato-Light.ttf",
-    "sans_bold": "/usr/share/fonts/truetype/lato/Lato-Bold.ttf",
+    "serif": _first_font(
+        "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+    ),
+    "serif_bold": _first_font(
+        "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
+    ),
+    "serif_italic": _first_font(
+        "/usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Italic.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+    ),
+    "sans": _first_font(
+        "/usr/share/fonts/truetype/lato/Lato-Regular.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    ),
+    "sans_light": _first_font(
+        "/usr/share/fonts/truetype/lato/Lato-Light.ttf",
+        "/usr/share/fonts/truetype/lato/Lato-Regular.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    ),
+    "sans_bold": _first_font(
+        "/usr/share/fonts/truetype/lato/Lato-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    ),
 }
 
 LOGO_MARK = ASSETS / "products" / "ColorDiam.png"
